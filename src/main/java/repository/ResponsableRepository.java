@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface ResponsableRepository extends JpaRepository<Responsable, Long> {
+    long countByOficinaId(Long oficinaId);
+    boolean existsByCi(String ci);
     List<Responsable> findByOficinaId(Long oficinaId);
 }

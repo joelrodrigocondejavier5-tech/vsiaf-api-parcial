@@ -1,6 +1,7 @@
 package com.vsiaf.api.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "responsable")
@@ -10,25 +11,53 @@ public class Responsable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Columna "Cod." de la grilla en VSIAF
-    @Column(name = "cod_responsable", nullable = false, length = 10)
-    private String codResponsable;
+    // ENTIDAD (Carácter 4) - Ministerio de Relaciones Exteriores = "10"
+    @Column(name = "entidad", length = 4)
+    private String entidad = "10";
 
-    // Columna "Responsable" de la grilla en VSIAF
-    @Column(name = "nombre_responsable", nullable = false, length = 120)
-    private String nombreResponsable;
+    // UNIDAD (Carácter 5) - Se toma de la oficina seleccionada
+    @Column(name = "unidad", length = 5)
+    private String unidad;
 
-    // Columna "Cargo" de la grilla en VSIAF
-    @Column(name = "cargo", nullable = false, length = 80)
+    // CODOFIC (Numérico 4) - Código de la oficina en VSIAF
+    @Column(name = "cod_ofic")
+    private Integer codOfic;
+
+    // CODRESP (Numérico 5) - Correlativo automático (1, 2, 3...)
+    @Column(name = "cod_resp")
+    private Integer codResp;
+
+    // NOMRESP (Carácter 35)
+    @Column(name = "nom_resp", length = 35)
+    private String nomResp;
+
+    // CARGO (Carácter 35)
+    @Column(name = "cargo", length = 35)
     private String cargo;
 
-    // Columna "CI" de la grilla en VSIAF
-    @Column(name = "ci", nullable = false, length = 20)
+    // OBSERV (Memo)
+    @Column(name = "observ", columnDefinition = "TEXT")
+    private String observ;
+
+    // CI (Carácter 20) - Mínimo 8 dígitos
+    @Column(name = "ci", length = 20)
     private String ci;
 
-    // Modificación propia respecto a VSIAF: estado activo y relación directa con Oficina
-    @Column(nullable = false)
-    private Boolean activo = true;
+    // FEULT (Fecha) - Fecha automática de registro o modificación
+    @Column(name = "feult")
+    private LocalDate feult;
+
+    // USUAR (Carácter 8) - Usuario que realiza la operación
+    @Column(name = "usuar", length = 8)
+    private String usuar = "admin";
+
+    // COD_EXP (Numérico 2) - Departamento según cla_depts.dbf (1 al 9)
+    @Column(name = "cod_exp")
+    private Integer codExp;
+
+    // API_ESTADO (Numérico 1) - 0 = INACTIVO, 1 = ACTIVO
+    @Column(name = "api_estado")
+    private Integer apiEstado = 0;
 
     @ManyToOne
     @JoinColumn(name = "oficina_id", nullable = false)
@@ -37,23 +66,49 @@ public class Responsable {
     public Responsable() {
     }
 
+    @Transient
+    public String getEstadoDescripcion() {
+        return (apiEstado != null && apiEstado == 1) ? "ACTIVO" : "INACTIVO";
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getCodResponsable() { return codResponsable; }
-    public void setCodResponsable(String codResponsable) { this.codResponsable = codResponsable; }
+    public String getEntidad() { return entidad; }
+    public void setEntidad(String entidad) { this.entidad = entidad; }
 
-    public String getNombreResponsable() { return nombreResponsable; }
-    public void setNombreResponsable(String nombreResponsable) { this.nombreResponsable = nombreResponsable; }
+    public String getUnidad() { return unidad; }
+    public void setUnidad(String unidad) { this.unidad = unidad; }
+
+    public Integer getCodOfic() { return codOfic; }
+    public void setCodOfic(Integer codOfic) { this.codOfic = codOfic; }
+
+    public Integer getCodResp() { return codResp; }
+    public void setCodResp(Integer codResp) { this.codResp = codResp; }
+
+    public String getNomResp() { return nomResp; }
+    public void setNomResp(String nomResp) { this.nomResp = nomResp; }
 
     public String getCargo() { return cargo; }
     public void setCargo(String cargo) { this.cargo = cargo; }
 
+    public String getObserv() { return observ; }
+    public void setObserv(String observ) { this.observ = observ; }
+
     public String getCi() { return ci; }
     public void setCi(String ci) { this.ci = ci; }
 
-    public Boolean getActivo() { return activo; }
-    public void setActivo(Boolean activo) { this.activo = activo; }
+    public LocalDate getFeult() { return feult; }
+    public void setFeult(LocalDate feult) { this.feult = feult; }
+
+    public String getUsuar() { return usuar; }
+    public void setUsuar(String usuar) { this.usuar = usuar; }
+
+    public Integer getCodExp() { return codExp; }
+    public void setCodExp(Integer codExp) { this.codExp = codExp; }
+
+    public Integer getApiEstado() { return apiEstado; }
+    public void setApiEstado(Integer apiEstado) { this.apiEstado = apiEstado; }
 
     public Oficina getOficina() { return oficina; }
     public void setOficina(Oficina oficina) { this.oficina = oficina; }
