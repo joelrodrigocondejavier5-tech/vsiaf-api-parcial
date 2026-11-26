@@ -27,6 +27,7 @@ public class ResponsableService {
         put(7, "SANTA CRUZ");
         put(8, "BENI");
         put(9, "PANDO");
+        put(10, "EXTRANJERO");
     }};
 
     @Autowired
@@ -48,36 +49,27 @@ public class ResponsableService {
                 .orElseThrow(() -> new IllegalArgumentException("No existe el responsable con ID: " + id));
     }
 
-    // POST /api/responsables -> Botón NUEVO + GUARDAR (nace INACTIVO = 0)
+    // POST /api/responsables -> Botón NUEVO + GUARDAR (nace INACTIVO = 0, igual que VSIAF)
     public Responsable crearResponsable(ResponsableRequest datos) {
         Oficina oficina = buscarOficinaPorCodigo(datos.getCodOfic());
-
-        if (Boolean.FALSE.equals(oficina.getActivo())) {
-            throw new IllegalArgumentException("No se puede registrar un responsable porque la oficina está INACTIVA");
-        }
-
         validarCampos(datos);
 
-        if (responsableRepository.existsByCi(datos.getCi().trim())) {
-            throw new IllegalArgumentException("Ya existe un responsable registrado con el CI: " + datos.getCi().trim());
-        }
-
-        // Genera CODRESP correlativo automático dentro de esa oficina
+        // Genera CODRESP correlativo automático dentro de esa oficina (1, 2, 3, 4...)
         int siguienteCodResp = (int) responsableRepository.countByOficinaId(oficina.getId()) + 1;
 
         Responsable nuevo = new Responsable();
         nuevo.setEntidad("10");
-        nuevo.setUnidad(oficina.getCodUnidad() != null ? oficina.getCodUnidad() : "01");
+        nuevo.setUnidad(oficina.getCodUnidad() != null ? oficina.getCodUnidad() : "1");
         nuevo.setCodOfic(datos.getCodOfic());
         nuevo.setCodResp(siguienteCodResp);
         nuevo.setNomResp(datos.getNomResp().trim().toUpperCase());
         nuevo.setCargo(datos.getCargo().trim().toUpperCase());
         nuevo.setObserv(datos.getObserv() != null ? datos.getObserv().trim().toUpperCase() : "");
-        nuevo.setCi(datos.getCi().trim());
+        nuevo.setCi(datos.getCi().trim().toUpperCase());
         nuevo.setFeult(LocalDate.now());
         nuevo.setUsuar("admin");
         nuevo.setCodExp(datos.getCodExp());
-        nuevo.setApiEstado(0); // Regla VSIAF: nace INACTIVO (0)
+        nuevo.setApiEstado(0); // En VSIAF al guardar nace INACTIVO (0)
         nuevo.setOficina(oficina);
 
         return responsableRepository.save(nuevo);
@@ -88,14 +80,9 @@ public class ResponsableService {
         Responsable actual = buscarPorId(id);
         validarCampos(datos);
 
-        String nuevoCi = datos.getCi().trim();
-        if (!actual.getCi().equals(nuevoCi) && responsableRepository.existsByCi(nuevoCi)) {
-            throw new IllegalArgumentException("Ya existe otro responsable con el CI: " + nuevoCi);
-        }
-
         actual.setNomResp(datos.getNomResp().trim().toUpperCase());
         actual.setCargo(datos.getCargo().trim().toUpperCase());
-        actual.setCi(nuevoCi);
+        actual.setCi(datos.getCi().trim().toUpperCase());
         actual.setCodExp(datos.getCodExp());
         if (datos.getObserv() != null) {
             actual.setObserv(datos.getObserv().trim().toUpperCase());
@@ -105,24 +92,9 @@ public class ResponsableService {
         return responsableRepository.save(actual);
     }
 
-    // PATCH /api/responsables/{id}/activar -> Botón ACTIVAR
+    // PATCH /api/responsables/{id}/activar -> Botón ACTIVAR (permite varios activos como en VSIAF)
     public Responsable activarResponsable(Long id) {
         Responsable actual = buscarPorId(id);
-
-        if (Boolean.FALSE.equals(actual.getOficina().getActivo())) {
-            throw new IllegalArgumentException("No se puede activar el responsable porque su oficina está INACTIVA");
-        }
-
-        // Mantiene un solo responsable ACTIVO en esa oficina
-        List<Responsable> deLaOficina = responsableRepository.findByOficinaId(actual.getOficina().getId());
-        for (Responsable r : deLaOficina) {
-            if (r.getApiEstado() != null && r.getApiEstado() == 1) {
-                r.setApiEstado(0);
-                r.setFeult(LocalDate.now());
-                responsableRepository.save(r);
-            }
-        }
-
         actual.setApiEstado(1);
         actual.setFeult(LocalDate.now());
         return responsableRepository.save(actual);
@@ -131,11 +103,6 @@ public class ResponsableService {
     // PATCH /api/responsables/{id}/inactivar -> Botón INACTIVAR
     public Responsable inactivarResponsable(Long id) {
         Responsable actual = buscarPorId(id);
-
-        if (Boolean.FALSE.equals(actual.getOficina().getActivo())) {
-            throw new IllegalArgumentException("No se puede inactivar el responsable porque su oficina está INACTIVA");
-        }
-
         actual.setApiEstado(0);
         actual.setFeult(LocalDate.now());
         return responsableRepository.save(actual);
@@ -145,8 +112,8 @@ public class ResponsableService {
         if (codOfic == null || codOfic <= 0) {
             throw new IllegalArgumentException("El código de oficina (codOfic) es obligatorio");
         }
-        String sinCero = String.valueOf(codOfic);        // "1"
-        String conCero = String.format("%02d", codOfic); // "01"
+        String sinCero = String.valueOf(codOfic);
+        String conCero = String.format("%02d", codOfic);
         return oficinaRepository.findFirstByCodOficina(conCero)
                 .or(() -> oficinaRepository.findFirstByCodOficina(sinCero))
                 .orElseThrow(() -> new IllegalArgumentException("No existe la oficina con código: " + codOfic));
@@ -157,19 +124,22 @@ public class ResponsableService {
             throw new IllegalArgumentException("El nombre del responsable (nomResp) es obligatorio");
         }
         if (datos.getNomResp().trim().length() > 35) {
-            throw new IllegalArgumentException("El nombre del responsable no puede pasar de 35 caracteres (tamaño de RESP.DBF)");
+            throw new IllegalArgumentException("El nombre no puede pasar de 35 caracteres (RESP.DBF)");
         }
         if (datos.getCargo() == null || datos.getCargo().isBlank()) {
             throw new IllegalArgumentException("El cargo (cargo) es obligatorio");
         }
         if (datos.getCargo().trim().length() > 35) {
-            throw new IllegalArgumentException("El cargo no puede pasar de 35 caracteres (tamaño de RESP.DBF)");
+            throw new IllegalArgumentException("El cargo no puede pasar de 35 caracteres (RESP.DBF)");
         }
-        if (datos.getCi() == null || !datos.getCi().trim().matches("^[0-9]{8,20}$")) {
-            throw new IllegalArgumentException("El CI debe ser numérico y tener como mínimo 8 dígitos");
+        if (datos.getCi() == null || datos.getCi().isBlank()) {
+            throw new IllegalArgumentException("El CI es obligatorio");
+        }
+        if (datos.getCi().trim().length() > 20) {
+            throw new IllegalArgumentException("El CI no puede pasar de 20 caracteres (RESP.DBF)");
         }
         if (datos.getCodExp() == null || !DEPARTAMENTOS.containsKey(datos.getCodExp())) {
-            throw new IllegalArgumentException("Código de departamento (codExp) inválido. Use del 1 al 9 según cla_depts.dbf");
+            throw new IllegalArgumentException("Código de departamento (codExp) inválido. Use del 1 al 10 según cla_depts.dbf");
         }
     }
 }
