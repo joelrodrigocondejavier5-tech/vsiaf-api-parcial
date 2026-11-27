@@ -27,7 +27,7 @@ public class ResponsableService {
         put(7, "SANTA CRUZ");
         put(8, "BENI");
         put(9, "PANDO");
-        put(10, "EXTRANJERO");
+        put(10, "OTROS");
     }};
 
     @Autowired
@@ -58,8 +58,8 @@ public class ResponsableService {
         int siguienteCodResp = (int) responsableRepository.countByOficinaId(oficina.getId()) + 1;
 
         Responsable nuevo = new Responsable();
-        nuevo.setEntidad("10");
-        nuevo.setUnidad(oficina.getCodUnidad() != null ? oficina.getCodUnidad() : "1");
+        nuevo.setEntidad("35");
+        nuevo.setUnidad("1");
         nuevo.setCodOfic(datos.getCodOfic());
         nuevo.setCodResp(siguienteCodResp);
         nuevo.setNomResp(datos.getNomResp().trim().toUpperCase());
@@ -69,7 +69,7 @@ public class ResponsableService {
         nuevo.setFeult(LocalDate.now());
         nuevo.setUsuar("admin");
         nuevo.setCodExp(datos.getCodExp());
-        nuevo.setApiEstado(0); // En VSIAF al guardar nace INACTIVO (0)
+        nuevo.setApiEstado(3); // 3 = INACTIVO según RESP.DBF
         nuevo.setOficina(oficina);
 
         return responsableRepository.save(nuevo);
@@ -103,8 +103,10 @@ public class ResponsableService {
     // PATCH /api/responsables/{id}/inactivar -> Botón INACTIVAR
     public Responsable inactivarResponsable(Long id) {
         Responsable actual = buscarPorId(id);
-        actual.setApiEstado(0);
+
+        actual.setApiEstado(3);
         actual.setFeult(LocalDate.now());
+
         return responsableRepository.save(actual);
     }
 

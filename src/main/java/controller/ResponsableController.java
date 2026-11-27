@@ -40,7 +40,10 @@ public class ResponsableController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear y guardar responsable (Nuevo + Guardar)", description = "Genera codResp automático y lo crea en estado INACTIVO (apiEstado = 0)")
+    @Operation(
+            summary = "Crear y guardar responsable (Nuevo + Guardar)",
+            description = "Genera codResp automático y lo crea en estado INACTIVO (apiEstado = 3)"
+    )
     public ResponseEntity<Responsable> crear(@RequestBody ResponsableRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(responsableService.crearResponsable(request));
     }
@@ -58,7 +61,10 @@ public class ResponsableController {
     }
 
     @PatchMapping("/{id}/inactivar")
-    @Operation(summary = "Inactivar responsable (Botón Inactivar)", description = "Cambia apiEstado a 0 (INACTIVO)")
+    @Operation(
+            summary = "Inactivar responsable (Botón Inactivar)",
+            description = "Cambia apiEstado a 3 (INACTIVO)"
+    )
     public Responsable inactivar(@PathVariable Long id) {
         return responsableService.inactivarResponsable(id);
     }

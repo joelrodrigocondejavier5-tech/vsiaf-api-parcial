@@ -13,10 +13,19 @@ public class ResponsableRequest {
     @Schema(example = "AUXILIAR CONTABLE", description = "Cargo en la oficina (CARGO, máx. 35 caracteres)")
     private String cargo;
 
-    @Schema(example = "85412369", description = "Cédula de Identidad (mínimo 8 dígitos numéricos)")
+    @Schema(
+            example = "130387J5",
+            description = "Cédula de Identidad (CI), carácter de 20. "
+                    + "Permite letras y números."
+    )
     private String ci;
 
-    @Schema(example = "5", description = "Código de departamento (COD_EXP de cla_depts.dbf: 1=CH, 2=LP, 3=CB, 4=OR, 5=PT, 6=TJ, 7=SC, 8=BN, 9=PD)")
+    @Schema(
+            example = "5",
+            description = "Código de departamento según cla_depts.dbf: "
+                    + "1=CHQ, 2=LPZ, 3=CBB, 4=ORU, 5=PTS, "
+                    + "6=TAR, 7=SCZ, 8=BEN, 9=PAN, 10=OTR."
+    )
     private Integer codExp;
 
     @Schema(example = "RESPONSABLE DE PRUEBA", description = "Observación opcional (OBSERV)")

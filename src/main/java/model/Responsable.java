@@ -13,7 +13,7 @@ public class Responsable {
 
     // ENTIDAD (Carácter 4) - Ministerio de Relaciones Exteriores = "10"
     @Column(name = "entidad", length = 4)
-    private String entidad = "10";
+    private String entidad = "35";
 
     // UNIDAD (Carácter 5) - Se toma de la oficina seleccionada
     @Column(name = "unidad", length = 5)
@@ -39,7 +39,7 @@ public class Responsable {
     @Column(name = "observ", columnDefinition = "TEXT")
     private String observ;
 
-    // CI (Carácter 20) - Mínimo 8 dígitos
+    // CI (Carácter 20) - Admite letras y números
     @Column(name = "ci", length = 20)
     private String ci;
 
@@ -51,13 +51,13 @@ public class Responsable {
     @Column(name = "usuar", length = 8)
     private String usuar = "admin";
 
-    // COD_EXP (Numérico 2) - Departamento según cla_depts.dbf (1 al 9)
+    // COD_EXP (Numérico 2) - Código según cla_depts.dbf (1 al 10)
     @Column(name = "cod_exp")
     private Integer codExp;
 
-    // API_ESTADO (Numérico 1) - 0 = INACTIVO, 1 = ACTIVO
+    // API_ESTADO (Numérico 1) - 1 = ACTIVO, 3 = INACTIVO
     @Column(name = "api_estado")
-    private Integer apiEstado = 0;
+    private Integer apiEstado = 3;
 
     @ManyToOne
     @JoinColumn(name = "oficina_id", nullable = false)
@@ -68,7 +68,15 @@ public class Responsable {
 
     @Transient
     public String getEstadoDescripcion() {
-        return (apiEstado != null && apiEstado == 1) ? "ACTIVO" : "INACTIVO";
+        if (apiEstado == null) {
+            return "SIN ESTADO";
+        }
+
+        return switch (apiEstado) {
+            case 1 -> "ACTIVO";
+            case 3 -> "INACTIVO";
+            default -> "DESCONOCIDO";
+        };
     }
 
     public Long getId() { return id; }
